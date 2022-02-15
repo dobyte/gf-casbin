@@ -24,14 +24,13 @@ import (
 )
 
 func main() {
-	enforcer, err := casbin.NewEnforcer(&casbin.Casbin{
-		Model:          "./example/model.conf",
-		Debug:          false,
-		Enable:         true,
-		AutoLoad:       true,
-		TableName:      "casbin_policy_test",
-		DatabaseDriver: "mysql",
-		DatabaseSource: "root:123456@tcp(127.0.0.1:3306)/casbin_test",
+	enforcer, err := casbin.NewEnforcer(&casbin.Options{
+		Model:     "./example/model.conf",
+		Debug:     false,
+		Enable:    true,
+		AutoLoad:  true,
+		DbTable:   "casbin_policy_test",
+		DbLink:    "mysql:root:123456@tcp(127.0.0.1:3306)/topic1",
 	})
 
 	if err != nil {
