@@ -1,50 +1,39 @@
 package casbin
 
 import (
-	"github.com/casbin/casbin/v2"
 	"time"
+
+	"github.com/casbin/casbin/v2"
 )
 
 type Enforcer = casbin.Enforcer
 
-type Casbin struct {
-	Model          string        // model config file path
-	Debug          bool          // debug mode
-	Enable         bool          // enable permission
-	AutoLoad       bool          // auto load policy
-	Duration       time.Duration // auto load duration
-	TableName      string        // policy table name
-	DatabaseDriver string        // database driver,support MySQL, SQLite, PostgreSQL, Oracle, SQL Server
-	DatabaseSource string        // database source url
+type Options struct {
+	Model    string        // model config file path
+	Debug    bool          // debug mode
+	Enable   bool          // enable permission
+	AutoLoad bool          // auto load policy
+	Duration time.Duration // auto load duration
+	DbTable  string        // policy table name
+	DbLink   string        // database source url, example: mysql:root:12345678@tcp(127.0.0.1:3306)/test
 }
 
-// Create a casbin enforcer
-func NewEnforcer(c *Casbin) (*Enforcer, error) {
-	var (
-		err      error
-		adapter  *Adapter
-		enforcer *Enforcer
-	)
+// NewEnforcer create a casbin enforcer.
+func NewEnforcer(opt *Options) (enforcer *Enforcer, err error) {
+	var adp *adapter
 
-	adapter, err = NewAdapter(&Adapter{
-		TableName:      c.TableName,
-		DatabaseDriver: c.DatabaseDriver,
-		DatabaseSource: c.DatabaseSource,
-	})
-
-	if err != nil {
-		return nil, err
+	if adp, err = newAdapter(opt.DbLink, opt.DbTable, opt.Debug); err != nil {
+		return
 	}
 
-	enforcer, err = casbin.NewEnforcer(c.Model, adapter)
-
-	if err != nil {
-		return nil, err
+	if enforcer, err = casbin.NewEnforcer(opt.Model, adp); err != nil {
+		return
 	}
 
-	enforcer.EnableLog(c.Debug)
-	enforcer.EnableEnforce(c.Enable)
-	enforcer.EnableAutoNotifyWatcher(c.AutoLoad)
+	enforcer.EnableLog(opt.Debug)
+	enforcer.EnableEnforce(opt.Enable)
+	enforcer.EnableAutoNotifyWatcher(opt.AutoLoad)
+	enforcer.EnableAutoSave(true)
 
-	return enforcer, nil
+	return
 }

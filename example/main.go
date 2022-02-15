@@ -2,21 +2,21 @@ package main
 
 import (
 	"fmt"
-	"github.com/dobyte/gf-casbin"
 	"log"
+
+	"github.com/dobyte/gf-casbin"
 )
 
 var enforcer *casbin.Enforcer
 
 func init() {
-	e, err := casbin.NewEnforcer(&casbin.Casbin{
-		Model:          "./example/model.conf",
-		Debug:          false,
-		Enable:         true,
-		AutoLoad:       true,
-		TableName:      "casbin_policy_test",
-		DatabaseDriver: "mysql",
-		DatabaseSource: "root:123456@tcp(127.0.0.1:3306)/ftft",
+	e, err := casbin.NewEnforcer(&casbin.Options{
+		Model:    "./example/model.conf",
+		Debug:    true,
+		Enable:   true,
+		AutoLoad: true,
+		DbTable:  "casbin_policy_test",
+		DbLink:   "mysql:root:123456@tcp(127.0.0.1:3306)/topic1",
 	})
 
 	if err != nil {
@@ -51,48 +51,42 @@ func main() {
 	})
 
 	// check role_1 policy
-	ok = enforcer.HasPolicy("role_1", "node_1")
-	if ok {
+	if ok = enforcer.HasPolicy("role_1", "node_1"); ok {
 		fmt.Println("role_1 is allowed access node_1")
 	} else {
 		fmt.Println("role_1 is not allowed access node_1")
 	}
 
 	// check role_1 policy
-	ok = enforcer.HasPolicy("role_1", "node_2")
-	if ok {
+	if ok = enforcer.HasPolicy("role_1", "node_2"); ok {
 		fmt.Println("role_1 is allowed access node_2")
 	} else {
 		fmt.Println("role_1 is not allowed access node_2")
 	}
 
 	// check user_1 policy
-	ok = enforcer.HasGroupingPolicy("user_1", "role_1")
-	if ok {
+	if ok = enforcer.HasGroupingPolicy("user_1", "role_1"); ok {
 		fmt.Println("user_1 has role_1")
 	} else {
 		fmt.Println("user_1 has not role_1")
 	}
 
 	// check user_1 policy
-	ok = enforcer.HasGroupingPolicy("user_1", "role_2")
-	if ok {
+	if ok = enforcer.HasGroupingPolicy("user_1", "role_2"); ok {
 		fmt.Println("user_1 has role_2")
 	} else {
 		fmt.Println("user_1 has not role_2")
 	}
 
 	// check access permission of user_1
-	ok, _ = enforcer.Enforce("user_1", "node_1")
-	if ok {
+	if ok, _ = enforcer.Enforce("user_1", "node_1"); ok {
 		fmt.Println("user_1 is allowed access node_1")
 	} else {
 		fmt.Println("user_1 is not allowed access node_1")
 	}
 
 	// check access permission of user_1
-	ok, _ = enforcer.Enforce("user_1", "node_2")
-	if ok {
+	if ok, _ = enforcer.Enforce("user_1", "node_2"); ok {
 		fmt.Println("user_1 is allowed access node_2")
 	} else {
 		fmt.Println("user_1 is not allowed access node_2")
@@ -142,32 +136,28 @@ func main() {
 	fmt.Println()
 
 	// check role_1 policy
-	ok = enforcer.HasPolicy("role_1", "node_1")
-	if ok {
+	if ok = enforcer.HasPolicy("role_1", "node_1"); ok {
 		fmt.Println("role_1 is allowed access node_1")
 	} else {
 		fmt.Println("role_1 is not allowed access node_1")
 	}
 
 	// check role_1 policy
-	ok = enforcer.HasPolicy("role_1", "node_2")
-	if ok {
+	if ok = enforcer.HasPolicy("role_1", "node_2"); ok {
 		fmt.Println("role_1 is allowed access node_2")
 	} else {
 		fmt.Println("role_1 is not allowed access node_2")
 	}
 
 	// check user_1 policy
-	ok = enforcer.HasGroupingPolicy("user_1", "role_1")
-	if ok {
+	if ok = enforcer.HasGroupingPolicy("user_1", "role_1"); ok {
 		fmt.Println("user_1 has role_1")
 	} else {
 		fmt.Println("user_1 has not role_1")
 	}
 
 	// check user_1 policy
-	ok = enforcer.HasGroupingPolicy("user_1", "role_2")
-	if ok {
+	if ok = enforcer.HasGroupingPolicy("user_1", "role_2"); ok {
 		fmt.Println("user_1 has role_2")
 	} else {
 		fmt.Println("user_1 has not role_2")
