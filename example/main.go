@@ -4,19 +4,43 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/gogf/gf/v2/database/gdb"
+
 	"github.com/dobyte/gf-casbin"
 )
 
 var enforcer *casbin.Enforcer
 
 func init() {
+	gdb.SetConfig(gdb.Config{
+		"default": gdb.ConfigGroup{
+			gdb.ConfigNode{
+				Host:   "127.0.0.1",
+				Port:   "3306",
+				User:   "root",
+				Pass:   "123456",
+				Name:   "topic1",
+				Type:   "mysql",
+				Role:   "master",
+				Weight: 100,
+			},
+		},
+	})
+
+	db, err := gdb.Instance()
+	if err != nil {
+		log.Fatalf("Database init failure:%s \n", err.Error())
+	}
+
 	e, err := casbin.NewEnforcer(&casbin.Options{
 		Model:    "./example/model.conf",
 		Debug:    true,
 		Enable:   true,
 		AutoLoad: true,
-		DbTable:  "casbin_policy_test",
-		DbLink:   "mysql:root:123456@tcp(127.0.0.1:3306)/topic1",
+		Table:    "casbin_policy_test",
+		DB:       db,
+		// Link:     "mysql:root:123456@tcp(127.0.0.1:3306)/topic1",
+		// Link:     "pgsql:user=root password=123456 host=127.0.0.1 port=5432 dbname=topic1",
 	})
 
 	if err != nil {

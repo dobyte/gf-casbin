@@ -29,8 +29,8 @@ func main() {
 		Debug:     false,
 		Enable:    true,
 		AutoLoad:  true,
-		DbTable:   "casbin_policy_test",
-		DbLink:    "mysql:root:123456@tcp(127.0.0.1:3306)/topic1",
+		Table:   "casbin_policy_test",
+		Link:    "mysql:root:123456@tcp(127.0.0.1:3306)/topic1",
 	})
 
 	if err != nil {

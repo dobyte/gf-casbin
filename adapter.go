@@ -9,23 +9,22 @@ import (
 
 	"github.com/casbin/casbin/v2/model"
 	"github.com/casbin/casbin/v2/persist"
-	"github.com/gogf/gf/database/gdb"
-	"github.com/gogf/gf/frame/g"
+	"github.com/gogf/gf/v2/database/gdb"
 )
 
 const (
-	defaultGroupName     = "casbin_database"
 	defaultTableName     = "casbin_policy"
+	dropPolicyTableSql   = `DROP TABLE IF EXISTS %s`
 	createPolicyTableSql = `
 CREATE TABLE IF NOT EXISTS %s (
-	ptype VARCHAR(10) NOT NULL DEFAULT '' COMMENT '',
-	v0 VARCHAR(256) NOT NULL DEFAULT '' COMMENT '',
-	v1 VARCHAR(256) NOT NULL DEFAULT '' COMMENT '',
-	v2 VARCHAR(256) NOT NULL DEFAULT '' COMMENT '',
-	v3 VARCHAR(256) NOT NULL DEFAULT '' COMMENT '',
-	v4 VARCHAR(256) NOT NULL DEFAULT '' COMMENT '',
-	v5 VARCHAR(256) NOT NULL DEFAULT '' COMMENT ''
-) ENGINE = InnoDB COMMENT = 'policy table';
+	ptype VARCHAR(10) NOT NULL DEFAULT '',
+	v0 VARCHAR(256) NOT NULL DEFAULT '',
+	v1 VARCHAR(256) NOT NULL DEFAULT '',
+	v2 VARCHAR(256) NOT NULL DEFAULT '',
+	v3 VARCHAR(256) NOT NULL DEFAULT '',
+	v4 VARCHAR(256) NOT NULL DEFAULT '',
+	v5 VARCHAR(256) NOT NULL DEFAULT ''
+) COMMENT = 'policy table';
 `
 )
 
@@ -71,51 +70,45 @@ type (
 )
 
 // Create a casbin adapter
-func newAdapter(link, table string, debug bool) (*adapter, error) {
-	config := strings.SplitN(link, ":", 2)
+func newAdapter(db gdb.DB, link, table string) (adp *adapter, err error) {
+	adp = &adapter{db, table}
 
-	if len(config) != 2 {
-		return nil, ErrInvalidDatabaseLink
+	if adp.db == nil {
+		config := strings.SplitN(link, ":", 2)
+
+		if len(config) != 2 {
+			err = ErrInvalidDatabaseLink
+			return
+		}
+
+		if adp.db, err = gdb.New(gdb.ConfigNode{Type: config[0], Link: config[1]}); err != nil {
+			return
+		}
 	}
 
-	gdb.SetConfigGroup(defaultGroupName, gdb.ConfigGroup{
-		gdb.ConfigNode{
-			Debug: debug,
-			Type:  config[0],
-			Link:  config[1],
-		},
-	})
-
-	if table == "" {
-		table = defaultTableName
+	if adp.table == "" {
+		adp.table = defaultTableName
 	}
 
-	a := &adapter{
-		db:    g.DB(defaultGroupName),
-		table: table,
-	}
+	err = adp.createPolicyTable()
 
-	if err := a.createPolicyTable(); err != nil {
-		return nil, err
-	}
-
-	return a, nil
+	return
 }
 
 func (a *adapter) model() *gdb.Model {
-	return a.db.Model(a.table).Safe()
+	return a.db.Model(a.table).Safe().Ctx(context.TODO())
 }
 
 // create a policy table when it's not exists.
 func (a *adapter) createPolicyTable() (err error) {
-	_, err = a.db.Exec(fmt.Sprintf(createPolicyTableSql, a.table))
+	_, err = a.db.Exec(context.TODO(), fmt.Sprintf(createPolicyTableSql, a.table))
 
 	return
 }
 
 // drop policy table from the storage.
 func (a *adapter) dropPolicyTable() (err error) {
-	_, err = a.db.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s", a.table))
+	_, err = a.db.Exec(context.TODO(), fmt.Sprintf(dropPolicyTableSql, a.table))
 
 	return
 }
