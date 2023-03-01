@@ -9,6 +9,7 @@ import (
 
 	"github.com/casbin/casbin/v2/model"
 	"github.com/casbin/casbin/v2/persist"
+	_ "github.com/gogf/gf/contrib/drivers/mysql/v2"
 	"github.com/gogf/gf/v2/database/gdb"
 )
 
@@ -255,7 +256,7 @@ func (a *adapter) UpdatePolicies(sec string, ptype string, oldRules, newRules []
 		return
 	}
 
-	err = a.db.Transaction(context.TODO(), func(ctx context.Context, tx *gdb.TX) error {
+	err = a.db.Transaction(context.TODO(), func(ctx context.Context, tx gdb.TX) error {
 		for i := 0; i < int(math.Min(float64(len(oldRules)), float64(len(newRules)))); i++ {
 			if _, err = tx.Model(a.table).Update(a.buildPolicyRule(ptype, newRules[i]), a.buildPolicyRule(ptype, oldRules[i])); err != nil {
 				return err
@@ -268,7 +269,7 @@ func (a *adapter) UpdatePolicies(sec string, ptype string, oldRules, newRules []
 	return
 }
 
-// 加载策略规则
+// load a policy rule
 func (a *adapter) loadPolicyRule(rule policyRule, model model.Model) {
 	ruleText := rule.PType
 
@@ -299,7 +300,7 @@ func (a *adapter) loadPolicyRule(rule policyRule, model model.Model) {
 	persist.LoadPolicyLine(ruleText, model)
 }
 
-// 构建策略规则
+// build a policy rule.
 func (a *adapter) buildPolicyRule(ptype string, data []string) policyRule {
 	rule := policyRule{PType: ptype}
 
